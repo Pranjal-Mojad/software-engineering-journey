@@ -1,0 +1,28 @@
+name: Create weekly journal entry
+
+on:
+  schedule:
+    - cron: "30 0 * * 1"   # Monday 00:30 UTC = 06:00 IST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  weekly-entry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create this week's file
+        run: |
+          WEEK=$(date +%G-W%V)
+          TODAY=$(date +%F)
+          FILE="learning-journal/${WEEK}.md"
+          if [ ! -f "$FILE" ]; then
+            sed "s/__DATE__/${TODAY}/" learning-journal/TEMPLATE.md > "$FILE"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$FILE"
+            git commit -m "journal: add ${WEEK}"
+            git push
+          fi
